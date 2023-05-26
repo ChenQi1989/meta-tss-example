@@ -1,0 +1,13 @@
+This layer is to demonstrate the effect of TSS.
+
+The commands to test are as below:
+
+bitbake tss-b -c cleansstate \
+&& bitbake tss-b \
+&& cat tmp/work/core2-64-poky-linux/tss-b/1.0-r0/image/usr/share/from-tss-B.txt
+
+If we disable TSS (echo 'USE_TSS = "0"' >> conf/local.conf), then
+we get undeterministic results from the above commands.
+
+If we enable TSS (USE_TSS is already set to "1" in bitbake.conf), then
+we get deterministic results from the above commands.
