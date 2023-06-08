@@ -1,13 +1,29 @@
 This layer is to demonstrate the effect of TSS.
 
-The commands to test are as below:
+* Demonstrate task1 specific deps do not appear in task2's sysroot
 
-bitbake tss-b -c cleansstate \
-&& bitbake tss-b \
-&& cat tmp/work/core2-64-poky-linux/tss-b/1.0-r0/image/usr/share/from-tss-B.txt
+  bitbake tss-b -c cleansstate \
+  && bitbake tss-b \
+  && cat tmp/work/core2-64-poky-linux/tss-b/1.0-r0/image/usr/share/from-tss-B.txt
 
-If we disable TSS (echo 'USE_TSS = "0"' >> conf/local.conf), then
-we get undeterministic results from the above commands.
+  If we disable TSS (echo 'USE_TSS = "0"' >> conf/local.conf), then
+  we get undeterministic results from the above commands.
 
-If we enable TSS (USE_TSS is already set to "1" in bitbake.conf), then
-we get deterministic results from the above commands.
+  If we enable TSS (USE_TSS is already set to "1" in bitbake.conf), then
+  we get deterministic results from the above commands.
+
+* Demonstrate task1's deps do not block removal of task2's sysroot contents
+
+  1. bitbake tss-c
+  2. Modify tss-c recipe and modify task_c2's deps as below.
+     #do_task_c2[depends] += "tss-a1:do_populate_sysroot tss-a2:do_populate_sysroot"
+     do_task_c2[depends] += "tss-a1:do_populate_sysroot"
+     (This changes task_c2's sysroot contents from tss-a1 + tss-a2 to merely tss-a1.
+  3. bitbake tss-c
+
+  If we disable TSS (echo 'USE_TSS = "0"' >> conf/local.conf), then
+  the task_c2's output does not change when changing its dependency.
+
+  If we enable TSS, then we can see tss-a2's contents are removed from
+  task_c2's sysroot. This demonstrates that the task_c1's dependencies
+  do not block the removal of task_c2's sysroots' contents.
